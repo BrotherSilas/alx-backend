@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""Flask app with mock login"""
 from flask import Flask, render_template, request, g
-from flask_babel import Babel, gettext
+from flask_babel import Babel, _
 
 app = Flask(__name__)
+
+class Config:
+    """Configuration for Babel"""
+    LANGUAGES = ["en", "fr"]
+    BABEL_DEFAULT_LOCALE = "en"
+    BABEL_DEFAULT_TIMEZONE = "UTC"
+
+app.config.from_object(Config)
+babel = Babel(app)
 
 users = {
     1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
@@ -12,46 +20,33 @@ users = {
     4: {"name": "Teletubby", "locale": None, "timezone": "Europe/London"},
 }
 
-
-class Config:
-    """Config class"""
-    LANGUAGES = ["en", "fr"]
-    BABEL_DEFAULT_LOCALE = "en"
-    BABEL_DEFAULT_TIMEZONE = "UTC"
-
-
-app.config.from_object(Config)
-babel = Babel(app)
-
-
 def get_user():
-    """Returns user dict if ID exists"""
-    login_id = request.args.get('login_as')
-    if login_id:
-        return users.get(int(login_id))
+    """Get the user dictionary if user ID is valid, otherwise return None"""
+    user_id = request.args.get('login_as')
+    if user_id and int(user_id) in users:
+        return users.get(int(user_id))
     return None
-
 
 @app.before_request
 def before_request():
-    """Sets user as global on flask.g.user"""
+    """Set the user in the global request context before each request"""
     g.user = get_user()
-
 
 @babel.localeselector
 def get_locale():
-    """Get locale from request"""
+    """Determine the best match for supported languages."""
     locale = request.args.get('locale')
-    if locale and locale in app.config['LANGUAGES']:
+    if locale in app.config['LANGUAGES']:
         return locale
+    if g.user and g.user.get("locale") in app.config["LANGUAGES"]:
+        return g.user["locale"]
     return request.accept_languages.best_match(app.config['LANGUAGES'])
-
 
 @app.route('/')
 def index():
-    """Home page"""
+    """Route for the index page"""
     return render_template('5-index.html')
 
+if __name__ == "__main__":
+    app.run()
 
-if __name__ == '__main__':
-    app.run(debug=True)
