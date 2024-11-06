@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Flask app with mock login"""
+"""Flask app with timezone support"""
 from flask import Flask, render_template, request, g
 from flask_babel import Babel, gettext
+import pytz
+from pytz.exceptions import UnknownTimeZoneError
 
 app = Flask(__name__)
 
@@ -40,17 +42,39 @@ def before_request():
 
 @babel.localeselector
 def get_locale():
-    """Get locale from request"""
+    """Get locale with priority"""
     locale = request.args.get('locale')
     if locale and locale in app.config['LANGUAGES']:
         return locale
+    if g.user and g.user['locale'] in app.config['LANGUAGES']:
+        return g.user['locale']
     return request.accept_languages.best_match(app.config['LANGUAGES'])
+
+
+@babel.timezoneselector
+def get_timezone():
+    """Get timezone with priority"""
+    try:
+        # Find timezone parameter in URL
+        timezone = request.args.get('timezone')
+        if timezone:
+            return pytz.timezone(timezone)
+
+        # Find timezone from user settings
+        if g.user and g.user['timezone']:
+            return pytz.timezone(g.user['timezone'])
+
+    except UnknownTimeZoneError:
+        pass
+
+    # Default to UTC
+    return pytz.UTC
 
 
 @app.route('/')
 def index():
     """Home page"""
-    return render_template('5-index.html')
+    return render_template('7-index.html')
 
 
 if __name__ == '__main__':

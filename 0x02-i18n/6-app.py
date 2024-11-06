@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Flask app with mock login"""
+"""Flask app with user locale preference"""
 from flask import Flask, render_template, request, g
 from flask_babel import Babel, gettext
 
@@ -40,17 +40,29 @@ def before_request():
 
 @babel.localeselector
 def get_locale():
-    """Get locale from request"""
+    """Get locale with following priority:
+    1. URL parameter
+    2. User settings
+    3. Request header
+    4. Default locale
+    """
+    # 1. Locale from URL parameters
     locale = request.args.get('locale')
     if locale and locale in app.config['LANGUAGES']:
         return locale
+
+    # 2. Locale from user settings
+    if g.user and g.user['locale'] in app.config['LANGUAGES']:
+        return g.user['locale']
+
+    # 3. Locale from request header
     return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
 @app.route('/')
 def index():
     """Home page"""
-    return render_template('5-index.html')
+    return render_template('6-index.html')
 
 
 if __name__ == '__main__':
