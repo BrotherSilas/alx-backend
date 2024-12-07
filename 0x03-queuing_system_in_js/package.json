@@ -1,0 +1,30 @@
+{
+  "name": "queuing_system_in_js",
+  "version": "1.0.0",
+  "description": "Backend queuing system using Redis and Kue",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --exec babel-node --presets @babel/preset-env",
+    "test": "mocha --require @babel/register --exit"
+  },
+  "keywords": [
+    "redis",
+    "queue",
+    "jobs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "kue": "^0.11.6",
+    "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/node": "^7.12.10",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/register": "^7.12.10",
+    "mocha": "^8.2.1",
+    "nodemon": "^2.0.7"
+  }
+}
